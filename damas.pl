@@ -75,6 +75,7 @@ imprimir( [ X | Y ], I, J ) :-	I is 1, J is 1, write('    1 | 2 | 3 | 4 | 5 | 6 
 								I\=1 , J is 1, write(I), write(' - '), write(X), F is I+1, G is J+1, imprimir( Y, F, G );
 								I\=1, J\=1, write(' | '), write(X), F is I+1, G is J+1, imprimir( Y, F, G ).
 
+
 imprimirMat( [ ] , I, J).
 imprimirMat( [ X | Y ], I, J ) :- imprimir( X, I, J),nl, F is I+1 ,imprimirMat(Y, F, J	).
 
@@ -87,10 +88,73 @@ writeLinha(M):-imprimir(M).
 
 criarMatrizInicial(M):- writeLinha(M).
 
-verificarMovimento(M, I, J, X, Y):- write('Deu certo').
-%verificarMovimento(M, I, J, X, Y):- verificarij(M, I, J), verificarxy(M, X, Y), K is X-I, L is Y-J, not(k,1), not(L,1), moverPeca(M, )
+concatena([], L, L).
+concatena([HD | L1], L2, [HD | L3]):- concatena(L1, L2, L3).
 
-turnodojogador(M, I, J, X, Y):-write('Jogo Atual ') ,nl, imprimirMat(M, 1, 1), nl,
+%comerPeça(M, I, J, X, Y):- .
+
+%inserirNaUltimaPosicao():-.
+
+substituirPecaEmColuna([], J, Peca).
+substituirPecaEmColuna([HD | HT], J, Peca):- (J = 1 -> concatena(Peca,HT, Nova);
+											  F is J-1, concatena(HD, substituirPecaEmColuna(HT, F, Peca))).
+
+											  
+substituirPeca([], I, J, Peca).
+substituirPeca([HD | HT], I, J, Peca):- (I = 1 -> concatena(substituirPecaEmColuna(HD, J, Peca), HT, Nova); 
+										 F is I-1, concatena(HD, substituirPeca(HT, F, J, Peca), Nova)).
+
+										 
+descobrirPosicao(J, Y):- ((J = 2, Y = 1) -> J;
+						  (J = 7, Y = 8) -> J;
+						   J < Y -> F is Y+1, F;
+						   J < Y -> K is Y-1, K;
+						   L is Y-1, L).
+
+						   
+verificaY([], Y, C).
+verificaY([HD | HT], Y, C):- Y=1, HD=C ; F is Y-1, verificaY(HT, Y, C).
+
+verificarXY([], X, Y, C).
+%verificarXY([HD | HT], X, Y):-(X=0 -> verificaY(HD, Y); F is X-1, verificarXY(T, F, Y)).
+verificarXY([HD | HT], X, Y, C) :- X=1, C = ["P"], verificaY(HD, Y, C); F is X-1, C = ["P"], verificarXY(HT, F, Y, C).
+
+moverPeca(M, I, J, X, Y):- verificarXY(M, X, Y, C), C =["P"], F is X+1, (substituirPeca(M, MNova, I, J, ["1"]), substituirPeca(MNova, MNova2, X, Y, ["1"]),substituirPeca(MNova2, MNova3,F, descobrirPosicao(J, Y), ["B"]); substituirPeca(M, MNova2, I, J, ["1"]),substituirPeca(MNova2, MNova3,X, Y, ["B"]).
+%moverPeca(M, I, J, X, Y):- verificarXY(M, X, Y, C), C=["P"], ; .
+
+moverPecaComp(M, PosicaoIJ, PosicaoXY).
+%moverPecaComp(M, [I | J], [X | Y]):-.
+
+
+%verificarMovimento(M, I, J, X, Y):- write('Deu certo').
+verificarMovimento(M, I, J, X, Y):- moverPeca(M, I, J, X, Y).
+
+verificaSeTemPecaNaLinha([], Peca, I, J).
+verificaSeTemPecaNaLinha([HD | HT], Peca, I, J):- (HD="B" -> concatena(concatena(I,J), []); F is J+1, verificaSeTemPecaNaLinha(HT, Peca, I, F)).
+
+verificaSeTemPecaLinhaAdjacente([], Peca, I, J, []).
+verificaSeTemPecaLinhaAdjacente([HD | HT], Peca, I, J, [Head | Tail]):- K is J+1, F is J-1, ((HT=F, HD="P") -> concatena(concatena(I,J),[]), concatena(Head, Tail);
+																		(HT=K, HD="P") -> concatena(concatena(I,J),[]), concatena(Head, Tail);
+																		verificaSeTemPecaLinhaAdjacente(HT, Peca, I, K, concatena(Head, Tail))).
+
+																		
+%verificaSeTemPecaNaLinha():-.
+
+%verificaPecaMaisFrenteRetornaXY():-.
+
+%verificaPecaMaisFrenteRetornaIJ():-.
+
+verificaParaCapturar([], Lista, I).
+verificaParaCapturar([HD | HT], Lista, I):- (I>7, verificaSeTemPecaLinhaAdjacente(HT, "P", I, 1, verificaSeTemPecaNaLinha(HD, "B", I, 1))=([],[]) ->  
+											 F is I+1, verificaParaCapturar(HT, Lista, F); 
+											 verificaSeTemPecaLinhaAdjacente(HT, "P", I, 1), verificaSeTemPecaNaLinha(HD,"P", I, 1)).
+
+											 
+turnodocomputador(M):- (verificaParaCapturar(M, [], 1)=([],[]) -> verificaPecaMaisFrenteRetornaIJ(M, [], 1), verificaParaCapturar(M, [], 1)); ((verificaParaCapturar(M, [], 1)=([],[]) -> verificaPecaMaisFrenteRetornaXY(M, [], 1)), verificaParaCapturar(M, [], 1)).
+					   
+
+						
+turnodojogador(M, I, J, X, Y):- nl,
 								write('Digite a linha onde esta'), nl, read(I), 
 								write('Digite a coluna onde esta'), nl, read(J),
 								write('Digite a linha onde vai'), nl, read(X),
@@ -98,14 +162,15 @@ turnodojogador(M, I, J, X, Y):-write('Jogo Atual ') ,nl, imprimirMat(M, 1, 1), n
 								verificarMovimento(M, I, J, X, Y).
 								
 
-mod2(T, NumeroDoTurno):- NumeroDoTurno is mod(T,2).
+mod2(T, NumeroDoTurno):- (NumeroDoTurno is mod(T,2)).
 
 turnar(M,T):- mod2(T, NumeroDoTurno), NumeroDoTurno is 0, turnodojogador(M, I, J, X, Y).
+%turnar(M,T):- write('Jogo Atual ') ,nl, imprimirMat(M, 1, 1), mod2(T, NumeroDoTurno), NumeroDoTurno is 0, turnodojogador(M, I, J, X, Y).
 %turnar(M,T):- mod2(T, NumeroDoTurno), Y is 0, turnodojogador(M, I, J, X, Y); mod2(T, Y), Y is 1, turnodocomputador(M).
 
 vencedor(M, V, T):- turnar(M, T).
 
-printarVencedor(V):- printe(v,"Jogador") ; printe(V, "computador").
+printarVencedor(V):- printe(V,"Jogador") ; printe(V, "computador").
 
 damas(M):- vencedor(M, V, 0), printarvencedor(T).
 

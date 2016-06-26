@@ -113,12 +113,12 @@ insereInicio(H, L, [H|L]):- !.
 removeporindice(0,[_|T],T):- !.
 removeporindice(I,[H|T],R):- X is I - 1, removeporindice(X, T, Y), insereInicio(H, Y, R).
 
-substituirPecaEmColuna(Linha,  ListaAuxiliar,  J, Peca):- L is J-1, removeporindice(L, Linha, Lista), nth0(L,ListaAuxiliar, ["_"], Lista).							
+substituirPecaEmColuna(Linha,  ListaAuxiliar,  J, Peca):- L is J-1, removeporindice(L, Linha, Lista), nth0(L,ListaAuxiliar, Peca, Lista).							
 
 substituirPeca([HD|HT], M, I, J, Peca):- !.
-substituirPeca([HD|HT], M, I, J, Cont, Peca, Lista):- I==1, substituirPecaEmColuna(HD, Linha, J, Peca), concatena(Linha, HT, Nova), concatena(ListaAuxiliar, Nova,M);
-										F is I-1,  nth0(Cont, ListaAuxiliar, HD, M), U is Cont+1, substituirPeca(HT, M, F, J, Cont, Peca, ListaAuxiliar).
-
+substituirPeca([HD|HT], M, I, J, Cont, Peca, Lista):-   I>1, F is I-1,  nth0(Cont, ListaAuxiliar, HD, Lista), U is Cont+1, substituirPeca(HT, M, F, J, U, Peca, ListaAuxiliar);
+														I==1, substituirPecaEmColuna(HD, Linha, J, Peca), concatena([Linha], HT, Nova), concatena(Lista, Nova,M).
+													 
 
 %substituirPecaEmColuna([], K, J, Peca).
 %substituirPecaEmColuna([HD | HT], K,  J, Peca):-  	F is J-1, substituirPecaEmColuna(HT, K, F, Peca), concatena(K, HD, K),J==1, concatena(Peca, HT, K).
@@ -132,31 +132,35 @@ substituirPeca([HD|HT], M, I, J, Cont, Peca, Lista):- I==1, substituirPecaEmColu
 %substituirPeca([HD | HT], M, I, J, Peca):- I==1, substituirPecaEmColuna(HD, M, J, Peca), concatena(, HT, Nova);, F is I-1, substituirPeca(HT,M, F, J, Peca), concatena(HD, , Nova)).
 
 										 
-descobrirPosicao(J, Y, P):- ((J = 2, Y = 1) -> P is J;
-						  (J = 7, Y = 8) -> P is J;
-						   J < Y -> F is Y+1, P is F;
-						   J < Y -> K is Y-1, P is K;
-						   L is Y-1, P is L).
+descobrirPosicao(X, J, Y, F, P):- 	J = 2, Y = 1, F is X+1, P is J;
+									J = 7, Y = 8, F is X+1, P is J;
+									J < Y, F is X+1, P is Y+1;
+									J > Y, F is X+1, P is Y-1 .
 
 						   
 verificaY([], Y, C).
-verificaY([HD | HT], Y, C):- Y=1, HD==C, P is HD ; Y=1, HD\=C,  P is HD; F is Y-1, verificaY(HT, F, C).
+verificaY([HD | HT], Y, C, P):- Y=1, HD==C, P is HD ;
+							Y=1, HD\=C,  P is HD;
+							F is Y-1, verificaY(HT, F, C).
 
-verificarXY([], X, Y, C).
+%verificarXY([], X, Y, C).
 %verificarXY([HD | HT], X, Y):-(X=0 -> verificaY(HD, Y); F is X-1, verificarXY(T, F, Y)).
-verificarXY([HD | HT], X, Y, P) :- X=1, C = ["P"], verificaY(HD, Y, C);
-									F is X-1, C = ["P"], verificarXY(HT, F, Y, P).
+verificarXY([HD | HT], X, Y, P) :- X=1, C = "P", verificaY(HD, Y, C, P);
+									F is X-1, C = "P", verificarXY(HT, F, Y, P).
 
-moverPeca(M, I, J, X, Y):- verificarXY(M, X, Y, P), P== ["P"], F is X+1, substituirPeca(M, M2, I, J, ["1"]), substituirPeca(M2, M3, X, Y, ["1"]), descobrirPosicao(J, Y, P), substituirPeca(M3, M4, F, P, ["B"]);
-							substituirPeca(M, M2, I, J, ["1"]), substituirPeca(M2, M3, X, Y, ["B"]).
-%moverPeca(M, I, J, X, Y):- verificarXY(M, X, Y, C, P), C=["P"], ; .
+moverPeca(M, I, J, X, Y, M4):-  verificarXY(M, X, Y, P), P=="P", write("comer"), F is X+1, substituirPeca(M, M2, I, J, 0, "1", []), substituirPeca(M2, M3, X, Y, 0, "1", []), descobrirPosicao(X, J, Y, F, P),  substituirPeca(M3, M4, F, P, 0, "B", []);
+								verificarXY(M, X, Y, P), P\="P", write("mover"), F is X+1, substituirPeca(M, M2, I, J, 0, "1", []), substituirPeca(M2, M4, X, Y, 0, "B", []).	
+
+% substituirPeca(M2, M3, X, Y, 0,  "1", Lista), descobrirPosicao(J, Y, P), substituirPeca(M3, M4, F, P, 0, "B", Lista);
+						%								%;substituirPeca(M2, M4, X, Y, 0, "B", Lista).	  
+%moverPeca(M, I, J, X, Y):- verificarXY(M, X, Y, C, P), C="P", ; .
 
 moverPecaComp(M, PosicaoIJ, PosicaoXY).
 %moverPecaComp(M, [I | J], [X | Y]):-.
 
 
 %verificarMovimento(M, I, J, X, Y):- write('Deu certo').
-verificarMovimento(M, I, J, X, Y):- moverPeca(M, I, J, X, Y).
+verificarMovimento(M, I, J, X, Y, M4):- moverPeca(M, I, J, X, Y, M4).
 
 verificaSeTemPecaNaLinha([], Peca, I, J).
 verificaSeTemPecaNaLinha([HD | HT], Peca, I, J):- (HD="B" -> concatena(concatena(I,J), []); F is J+1, verificaSeTemPecaNaLinha(HT, Peca, I, F)).
@@ -183,22 +187,22 @@ turnodocomputador(M):- (verificaParaCapturar(M, [], 1)=([],[]) -> verificaPecaMa
 					   
 
 						
-turnodojogador(M, I, J, X, Y):- nl,
+turnodojogador(M, I, J, X, Y, M4):- nl,
 								write('Digite a linha onde esta'), nl, read(I), 
 								write('Digite a coluna onde esta'), nl, read(J),
 								write('Digite a linha onde vai'), nl, read(X),
 								write('Digite a coluna onde vai'), nl, read(Y),
-								verificarMovimento(M, I, J, X, Y).
+								verificarMovimento(M, I, J, X, Y, M4).
 								
 
 mod2(T, NumeroDoTurno):- (NumeroDoTurno is mod(T,2)).
 
 %turnar(M,T):- mod2(T, NumeroDoTurno), NumeroDoTurno is 0, turnodojogador(M, I, J, X, Y).
 %turnar(M,T):-  mod2(T, NumeroDoTurno), NumeroDoTurno is 0, turnodojogador(M, I, J, X, Y).
-turnar(M,T):-  write("Jogo Atual: "), nl, imprimirMat(M, 1,1), mod2(T, NumeroDoTurno), turnodojogador(M, I, J, X, Y), S is T+1, turnar(M, S);
-			  write("Jogo Atual: "), nl, imprimirMat(M, 1,1), mod2(T, NumeroDoTurno), turnodojogador(M, I, J, X, Y), S is T+1, turnar(M, S).
+turnar(M,T):-  write("Jogo Atual: "), nl, imprimirMat(M, 1,1), mod2(T, NumeroDoTurno), turnodojogador(M, I, J, X, Y, M4), S is T+1, turnar(M4, S).
+			 % write("Jogo Atual: "), nl, imprimirMat(M, 1,1), mod2(T, NumeroDoTurno), turnodojogador(M, I, J, X, Y, M4), S is T+1, turnar(M4, S).
 
-				vencedor(M, V, T):- turnar(M, T).
+vencedor(M, V, T):- turnar(M, T).
 
 printarVencedor(V):- printe(V,"Jogador") ; printe(V, "computador").
 

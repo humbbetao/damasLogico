@@ -79,6 +79,15 @@ imprimir( [ X | Y ], I, J ) :-	I is 1, J is 1, write('    1 | 2 | 3 | 4 | 5 | 6 
 imprimirMat( [ ] , I, J).
 imprimirMat( [ X | Y ], I, J ) :- imprimir( X, I, J),nl, F is I+1 ,imprimirMat(Y, F, J	).
 
+%imprimir( [ ], I, J ).
+%imprimir( [ X | Y ], I, J ) :-	I=0, J=0, L is X, write(X),G is F+1, imprimir( Y, F, G, L ).
+
+
+%imprimirMat( [ ] , I, J).
+%imprimirMat( [ X | Y ], I, J, L ) :- imprimir( X, I, J, L), nl, F is I+1 ,imprimirMat(Y, F, J, L).
+
+
+
 
 matriz([["_","B","_","B","_","B","_","B"],["B","_","B","_","B","_","B","_"],	["_","B","_","B","_","B","_","B"],["1","_","1","_","1","_","1","_"],["_","1","_","1","_","1","_","1"],["P","_","P","_","P","_","P","_"],["_","P","_","P","_","P","_","P"],["P","_","P","_","P","_","P","_"]]).
 
@@ -95,32 +104,52 @@ concatena([HD | L1], L2, [HD | L3]):- concatena(L1, L2, L3).
 
 %inserirNaUltimaPosicao():-.
 
-substituirPecaEmColuna([], J, Peca).
-substituirPecaEmColuna([HD | HT], J, Peca):- (J = 1 -> concatena(Peca,HT, Nova);
-											  F is J-1, concatena(HD, substituirPecaEmColuna(HT, F, Peca))).
+%nth0(1, L, a1, [a,b])
+	%posicao, lista que vai receber, elemento, e a lista que eh inserida;
+
+
+insereInicio(H, L, [H|L]):- !.
+
+removeporindice(0,[_|T],T):- !.
+removeporindice(I,[H|T],R):- X is I - 1, removeporindice(X, T, Y), insereInicio(H, Y, R).
+
+substituirPecaEmColuna(Linha,  ListaAuxiliar,  J, Peca):- L is J-1, removeporindice(L, Linha, Lista), nth0(L,ListaAuxiliar, ["_"], Lista).							
+
+substituirPeca([HD|HT], M, I, J, Peca):- !.
+substituirPeca([HD|HT], M, I, J, Cont, Peca, Lista):- I==1, substituirPecaEmColuna(HD, Linha, J, Peca), concatena(Linha, HT, Nova), concatena(ListaAuxiliar, Nova,M);
+										F is I-1,  nth0(Cont, ListaAuxiliar, HD, M), U is Cont+1, substituirPeca(HT, M, F, J, Cont, Peca, ListaAuxiliar).
+
+
+%substituirPecaEmColuna([], K, J, Peca).
+%substituirPecaEmColuna([HD | HT], K,  J, Peca):-  	F is J-1, substituirPecaEmColuna(HT, K, F, Peca), concatena(K, HD, K),J==1, concatena(Peca, HT, K).
+																
+
+	
+%J == 1 , concatena(HD,  )concatena(Peca, HT, Nova), con , F is J-1, concatena(HD, )).
 
 											  
-substituirPeca([], I, J, Peca).
-substituirPeca([HD | HT], I, J, Peca):- (I = 1 -> concatena(substituirPecaEmColuna(HD, J, Peca), HT, Nova); 
-										 F is I-1, concatena(HD, substituirPeca(HT, F, J, Peca), Nova)).
+%substituirPeca([], M, I, J, Peca).
+%substituirPeca([HD | HT], M, I, J, Peca):- I==1, substituirPecaEmColuna(HD, M, J, Peca), concatena(, HT, Nova);, F is I-1, substituirPeca(HT,M, F, J, Peca), concatena(HD, , Nova)).
 
 										 
-descobrirPosicao(J, Y):- ((J = 2, Y = 1) -> J;
-						  (J = 7, Y = 8) -> J;
-						   J < Y -> F is Y+1, F;
-						   J < Y -> K is Y-1, K;
-						   L is Y-1, L).
+descobrirPosicao(J, Y, P):- ((J = 2, Y = 1) -> P is J;
+						  (J = 7, Y = 8) -> P is J;
+						   J < Y -> F is Y+1, P is F;
+						   J < Y -> K is Y-1, P is K;
+						   L is Y-1, P is L).
 
 						   
 verificaY([], Y, C).
-verificaY([HD | HT], Y, C):- Y=1, HD=C ; F is Y-1, verificaY(HT, Y, C).
+verificaY([HD | HT], Y, C):- Y=1, HD==C, P is HD ; Y=1, HD\=C,  P is HD; F is Y-1, verificaY(HT, F, C).
 
 verificarXY([], X, Y, C).
 %verificarXY([HD | HT], X, Y):-(X=0 -> verificaY(HD, Y); F is X-1, verificarXY(T, F, Y)).
-verificarXY([HD | HT], X, Y, C) :- X=1, C = ["P"], verificaY(HD, Y, C); F is X-1, C = ["P"], verificarXY(HT, F, Y, C).
+verificarXY([HD | HT], X, Y, P) :- X=1, C = ["P"], verificaY(HD, Y, C);
+									F is X-1, C = ["P"], verificarXY(HT, F, Y, P).
 
-moverPeca(M, I, J, X, Y):- verificarXY(M, X, Y, C), C =["P"], F is X+1, (substituirPeca(M, MNova, I, J, ["1"]), substituirPeca(MNova, MNova2, X, Y, ["1"]),substituirPeca(MNova2, MNova3,F, descobrirPosicao(J, Y), ["B"]); substituirPeca(M, MNova2, I, J, ["1"]),substituirPeca(MNova2, MNova3,X, Y, ["B"]).
-%moverPeca(M, I, J, X, Y):- verificarXY(M, X, Y, C), C=["P"], ; .
+moverPeca(M, I, J, X, Y):- verificarXY(M, X, Y, P), P== ["P"], F is X+1, substituirPeca(M, M2, I, J, ["1"]), substituirPeca(M2, M3, X, Y, ["1"]), descobrirPosicao(J, Y, P), substituirPeca(M3, M4, F, P, ["B"]);
+							substituirPeca(M, M2, I, J, ["1"]), substituirPeca(M2, M3, X, Y, ["B"]).
+%moverPeca(M, I, J, X, Y):- verificarXY(M, X, Y, C, P), C=["P"], ; .
 
 moverPecaComp(M, PosicaoIJ, PosicaoXY).
 %moverPecaComp(M, [I | J], [X | Y]):-.
@@ -164,11 +193,12 @@ turnodojogador(M, I, J, X, Y):- nl,
 
 mod2(T, NumeroDoTurno):- (NumeroDoTurno is mod(T,2)).
 
-turnar(M,T):- mod2(T, NumeroDoTurno), NumeroDoTurno is 0, turnodojogador(M, I, J, X, Y).
-%turnar(M,T):- write('Jogo Atual ') ,nl, imprimirMat(M, 1, 1), mod2(T, NumeroDoTurno), NumeroDoTurno is 0, turnodojogador(M, I, J, X, Y).
-%turnar(M,T):- mod2(T, NumeroDoTurno), Y is 0, turnodojogador(M, I, J, X, Y); mod2(T, Y), Y is 1, turnodocomputador(M).
+%turnar(M,T):- mod2(T, NumeroDoTurno), NumeroDoTurno is 0, turnodojogador(M, I, J, X, Y).
+%turnar(M,T):-  mod2(T, NumeroDoTurno), NumeroDoTurno is 0, turnodojogador(M, I, J, X, Y).
+turnar(M,T):-  write("Jogo Atual: "), nl, imprimirMat(M, 1,1), mod2(T, NumeroDoTurno), turnodojogador(M, I, J, X, Y), S is T+1, turnar(M, S);
+			  write("Jogo Atual: "), nl, imprimirMat(M, 1,1), mod2(T, NumeroDoTurno), turnodojogador(M, I, J, X, Y), S is T+1, turnar(M, S).
 
-vencedor(M, V, T):- turnar(M, T).
+				vencedor(M, V, T):- turnar(M, T).
 
 printarVencedor(V):- printe(V,"Jogador") ; printe(V, "computador").
 

@@ -40,29 +40,27 @@ moverPeca(M, I, J, X, Y, M4):-  verificarXY(M, X, Y, P), P=="P", write("comer"),
 								verificarXY(M, X, Y, P), P\="P", write("mover"), substituirPeca(M, M2, I, J, 0, "1", []), substituirPeca(M2, M4, X, Y, 0, "B", []).	
 
 verificarMovimento(M, I, J, X, Y, M4):- moverPeca(M, I, J, X, Y, M4).
-			
+	
+verificarOrestoDacauda(PosicaoIJ, [HD|HT], Cont, J, V, L, S, PosicaoXY):- 	HD\="P", Q is L+1, verificarOrestoDacauda(PosicaoIJ, HT, Cont, J, V, L, Q, PosicaoXY);
+																			HD=="P",  K is L-1, PosicaoXY = [K,S].															
 							
-verificaY(PosicaoIJ, [HD|HT], Cont, J, V, L,PosicaoXY):- 	HD\="P", Y is L+1, verificaY(PosicaoIJ, HT, Cont, J, V, Y,PosicaoXY);
-															 HD="P", write("EH igual a P"), PosicaoXY = [V,L], write("NOva posicao"), write(PosicaoXY).
-
-
+verificaY(PosicaoIJ, [HD|HT], Cont, J, V, L,PosicaoXY):- 	Y is L+1, verificaY(PosicaoIJ, HT, Cont, J, V, Y,PosicaoXY);
+															 verificarOrestoDacauda(PosicaoIJ, HD, Cont, J, V, L, 1, PosicaoXY).
 
 				
 verificarXY(PosicaoIJ, [HD|HT], Cont, J, Novo, PosicaoXY):- Cont<Novo,V is Novo+1, verificarXY(PosicaoIJ, HT, Cont, J, V, PosicaoXY);
-															Cont>Novo, V is Novo+1, verificaY(PosicaoIJ, HT, Cont, J,V, 1,PosicaoXY).															
+																Cont>Novo, V is Novo+1, verificaY(PosicaoIJ, HT, Cont, J,V, 1,PosicaoXY).															
 
-%verificarEmJ([HD|HT], M, Cont, J, PosicaoIJ, PosicaoXY)	:- write("oi").														
-verificarEmJ([HD| HT], M2, Cont, J, PosicaoIJ, PosicaoXY):- HD="B", PosicaoIJ = [Cont, J], write("Posicao antifa"), write(PosicaoIJ), verificarXY(PosicaoIJ, M2, Cont, J, 1, PosicaoXY);
+														
+verificarEmJ([HD| HT], M2, Cont, J, PosicaoIJ, PosicaoXY):- HD="B", PosicaoIJ = [Cont,J],  verificarXY(PosicaoIJ, M2, Cont, J, 1, PosicaoXY);
 															HD\="B", Y is J+1, verificarEmJ(HT, M2, Cont, Y, PosicaoIJ, PosicaoXY).
 											
-
-%verificaParaCapturar([ ], M2, Cont, PosicaoIJ, PosicaoXY).			
 verificaParaCapturar([HD|HT], M2, Cont, PosicaoIJ, PosicaoXY):- F is Cont+1, verificaParaCapturar(HT, M2, F, PosicaoIJ, PosicaoXY);
 																verificarEmJ(HD, M2, Cont, 1, PosicaoIJ, PosicaoXY). 
 separarIJ([HD1, HD2|_], I, J):- I is HD1, J is HD2. 
 				
-turnodocomputador(M, I, J, X, Y, M4) :-  verificaParaCapturar(M, M, 1, PosicaoIJ, PosicaoXY), write(PosicaoIJ), write("comer"), substituirPeca(M, M2, I, J, 0, "1", []), substituirPeca(M2, M3, X, Y, 0, "1", []), descobrirPosicao(X, J, Y, F, P),  substituirPeca(M3, M4, F, P, 0, "P", []);
-										 verificaParaCapturar(M, M, 1, PosicaoIJ, PosicaoXY),  write(PosicaoIJ), write("mover"), substituirPeca(M, M2, I, J, 0, "1", []), substituirPeca(M2, M4, X, Y, 0, "P", []).
+turnodocomputador(M, I, J, X, Y, M4) :-  verificaParaCapturar(M, M, 1, PosicaoIJ, PosicaoXY),write(PosicaoIJ),write(PosicaoXY), separarIJ(PosicaoIJ, I, J), separarIJ(PosicaoXY, X, Y), write("comer"),  substituirPeca(M, M2, I, J, 0, "1", []), substituirPeca(M2, M3, X, Y, 0, "1", []), descobrirPosicao(X, J, Y, F, P),  substituirPeca(M3, M4, F, P, 0, "P", []);
+										 verificaParaCapturar(M, M, 1, PosicaoIJ, PosicaoXY),write(PosicaoIJ),write(PosicaoXY), separarIJ(PosicaoIJ, I, J), separarIJ(PosicaoXY, X, Y), write("mover"), substituirPeca(M, M2, I, J, 0, "1", []), substituirPeca(M2, M4, X, Y, 0, "P", []).
 								
 						
 turnodojogador(M, I, J, X, Y, M4):- nl,
